@@ -1,0 +1,30 @@
+{
+  "server": {
+    "port": 5000,
+    "host": "0.0.0.0",
+    "jpeg_quality": 75,
+    "max_alerts": 500
+  },
+  "camera": {
+    "cam1": {
+      "name": "左目",
+      "resolution": [640, 480],
+      "fps_target": 15
+    },
+    "cam2": {
+      "name": "右目",
+      "resolution": [640, 480],
+      "fps_target": 15
+    }
+  },
+  "alert": {
+    "fall_ratio_threshold": 1.5,
+    "alert_cooldown_seconds": 5,
+    "max_alerts_stored": 500
+  },
+  "network": {
+    "public_url": "trycloudflare-auto",
+    "local_url": "http://192.168.10.8:8080",
+    "api_base": "http://localhost:5000"
+  }
+}

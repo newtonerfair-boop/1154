@@ -1,0 +1,13 @@
+[Unit]
+Description=单目监控 Flask 服务器
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /root/dual_server.py
+Restart=on-failure
+RestartSec=5
+WorkingDirectory=/root
+
+[Install]
+WantedBy=multi-user.target

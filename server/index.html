@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>监控系统</title>
+<style>
+:root{--bg:#0a0e14;--card:#141b22;--accent:#39bae6;--green:#7fd962;--red:#f26d78;--text:#abb2bf;--dim:#5c6773}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',-apple-system,sans-serif;min-height:100vh}
+.topbar{background:var(--card);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e2a36}
+.topbar h1{font-size:16px;font-weight:600;color:#e6edf3}
+.blink{animation:blink 1s infinite}@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.alert-dot{display:none;color:var(--red);font-size:20px;margin-left:8px}
+.main{max-width:960px;margin:0 auto;padding:16px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border-radius:8px;padding:12px 14px;border:1px solid #1e2a36}
+.stat .label{font-size:11px;color:var(--dim);text-transform:uppercase;margin-bottom:4px}
+.stat .value{font-size:20px;font-weight:700;color:#e6edf3}
+.cam-card{background:var(--card);border-radius:10px;overflow:hidden;border:1px solid #1e2a36;transition:.3s}
+.cam-card.alert{border-color:var(--red);box-shadow:0 0 20px rgba(242,109,120,.15)}
+.cam-card .cam-header{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e2a36;font-size:13px}
+.cam-card .cam-name{font-weight:600;color:#e6edf3}
+.cam-card .cam-fps{color:var(--dim);font-size:12px}
+.cam-card .cam-body{position:relative;background:#000;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;min-height:300px}
+.cam-card .cam-body img{width:100%;height:100%;object-fit:contain}
+.cam-card .overlay{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);padding:3px 8px;border-radius:4px;font-size:11px}
+.panel{background:var(--card);border-radius:10px;border:1px solid #1e2a36;margin-top:12px;overflow:hidden}
+.panel-header{padding:10px 16px;border-bottom:1px solid #1e2a36;font-weight:600;font-size:14px;display:flex;justify-content:space-between}
+.panel-header .badge{background:var(--red);color:#fff;padding:1px 8px;border-radius:10px;font-size:11px}
+.alert-list{max-height:240px;overflow-y:auto}
+.alert-item{padding:10px 16px;border-bottom:1px solid #15202b;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.alert-item:hover{background:#1a2330}
+.alert-item .time{color:var(--dim);font-size:12px;white-space:nowrap;margin-left:12px}
+.alert-item.fall{border-left:3px solid var(--red)}
+.alert-item.warn{border-left:3px solid #ffb454}
+.empty{text-align:center;padding:40px;color:var(--dim)}
+@media(max-width:768px){.stats{grid-template-columns:repeat(2,1fr)}.topbar h1{font-size:14px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>📷 实时监控 <span class="alert-dot blink" id="alertDot">⚠️</span></h1>
+  <span style="font-size:12px;color:var(--dim)" id="clock">--</span>
+</div>
+<div class="main">
+  <div class="stats">
+    <div class="stat"><div class="label">帧率</div><div class="value" style="color:var(--green)" id="fps">--</div></div>
+    <div class="stat"><div class="label">总帧数</div><div class="value" style="color:var(--accent)" id="totalFrames">0</div></div>
+    <div class="stat"><div class="label">今日告警</div><div class="value" style="color:var(--red)" id="alertsCount">0</div></div>
+  </div>
+  <div class="cam-card" id="camCard">
+    <div class="cam-header"><span class="cam-name">📷 摄像头</span><span class="cam-fps" id="fpsLabel">-- FPS</span></div>
+    <div class="cam-body">
+      <span class="overlay" id="statusOverlay" style="color:#ffb454">等待推流...</span>
+      <img id="demo" src="/demo.png" style="display:block;width:100%;height:100%;object-fit:contain">
+      <img id="cam" src="" onload="onFrame()" onerror="this.style.display='none'" style="display:none">
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><span>📋 告警记录</span><span class="badge" id="alertBadge">0</span></div>
+    <div class="alert-list" id="alertList"><div class="empty">暂无告警 ✅</div></div>
+  </div>
+</div>
+<script>
+var frameCount=0,lastAlerts=0;
+function refresh(){document.getElementById('cam').src='/video_feed?t='+Date.now()}
+refresh();
+setInterval(refresh,100);
+function onFrame(){
+  document.getElementById('demo').style.display='none';
+  document.getElementById('cam').style.display='block';
+  document.getElementById('statusOverlay').textContent='在线';
+  document.getElementById('statusOverlay').style.color='#7fd962';
+  frameCount++;
+}
+setInterval(function(){
+  document.getElementById('fpsLabel').textContent=(frameCount/((Date.now()-startTime)/1000)).toFixed(1)+' FPS';
+  document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-CN');
+  fetch('/api/status').then(r=>r.json()).then(d=>{
+    document.getElementById('totalFrames').textContent=d.frame_count;
+    document.getElementById('fps').textContent=d.fps;
+    document.getElementById('alertsCount').textContent=d.alerts_total||0;
+  }).catch(function(){});
+  fetch('/api/alerts?limit=10').then(r=>r.json()).then(function(alerts){
+    if(!alerts||!alerts.length)return;
+    if(alerts.length!==lastAlerts){
+      lastAlerts=alerts.length;
+      var html='';
+      alerts.forEach(function(a){
+        var cls=a.type==='fall'?'fall':'warn';
+        var icon=a.level==='danger'?'🔴':(a.level==='warning'?'🟡':'🟢');
+        html+='<div class="alert-item '+cls+'"><span>'+icon+' '+a.type+' - '+(a.detail||'无详情')+'</span><span class="time">'+a.time+'</span></div>';
+      });
+      document.getElementById('alertList').innerHTML=html;
+      document.getElementById('alertBadge').textContent=alerts.length;
+      document.getElementById('alertDot').style.display='inline';
+      document.getElementById('camCard').classList.add('alert');
+      setTimeout(function(){document.getElementById('camCard').classList.remove('alert')},3000);
+    }
+  }).catch(function(){});
+},1000);
+var startTime=Date.now();
+</script>
+</body>
+</html>

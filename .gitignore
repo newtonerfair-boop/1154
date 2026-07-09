@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# STM32
+stm32/build/
+*.elf
+*.bin
+*.o
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 敏感信息
+.env
+*.password
+*_url.txt
+
+# 日志
+*.log

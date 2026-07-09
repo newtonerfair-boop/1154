@@ -1,0 +1,13 @@
+[Unit]
+Description=Cloudflare Tunnel
+After=network.target camera-server.service
+Wants=camera-server.service
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /root/start_tunnel.sh
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

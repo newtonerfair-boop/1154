@@ -1,0 +1,10 @@
+# RDK X5 Python 依赖
+
+# YOLO 推理 (地平线 RDK 平台预装 pyeasy_dnn)
+# pip 安装的额外依赖:
+opencv-python>=4.5
+numpy>=1.21
+
+# 如果使用 push_stream.py 推流到鲲鹏服务器:
+requests>=2.28
+ultralytics>=8.0  # YOLOv8 姿态估计 (跌倒检测)
